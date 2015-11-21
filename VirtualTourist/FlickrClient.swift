@@ -24,6 +24,8 @@ class FlickrClient: NSObject {
     
     var session: NSURLSession
     
+    var currentTask: NSURLSessionTask?
+    
     override init() {
         session = NSURLSession.sharedSession()
         super.init()
@@ -111,6 +113,7 @@ class FlickrClient: NSObject {
         }
         
         task.resume()
+        currentTask = task
     }
  
     func searchPhotosByLatLonForPage(pin: Pin, page: Int, callback: (JSONResult: [[String: AnyObject?]]!, errorString: String?)->Void) {
@@ -199,6 +202,9 @@ class FlickrClient: NSObject {
                 
                 var photosForPin:[[String: AnyObject?]] = []
                 for _ in 1...self.NumberOfPhotosInCollection {
+                    if photosArray.count == 0 {
+                        break
+                    }
                     let randomImageIndex = Int(arc4random_uniform(UInt32(photosArray.count)))
                     let photo = photosArray.removeAtIndex(randomImageIndex)
                     photosForPin.append(photo)
@@ -210,6 +216,7 @@ class FlickrClient: NSObject {
         }
         
         task.resume()
+        currentTask = task
     }
     
     func getImageWithPath(path: String, callback: (imageData: NSData?, errorString: String?)-> Void) {
@@ -285,14 +292,7 @@ class FlickrClient: NSObject {
     
     // MARK: Shared Instance
     
-    class func sharedInstance() -> FlickrClient {
-        
-        struct Singleton {
-            static var sharedInstance = FlickrClient()
-        }
-        
-        return Singleton.sharedInstance
-    }
+    static let sharedInstance = FlickrClient()
     
     struct Caches {
         static let imageCache = ImageCache()

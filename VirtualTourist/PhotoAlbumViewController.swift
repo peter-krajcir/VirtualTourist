@@ -63,7 +63,7 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
     func getImagesForPin(pin:Pin) {
         newCollectionBarButtonItem.enabled = false
         overlayView.hidden = false
-        FlickrClient.sharedInstance().searchPhotosByLatLon(pin) { (JSONResult, errorString) in
+        FlickrClient.sharedInstance.searchPhotosByLatLon(pin) { (JSONResult, errorString) in
             dispatch_async(dispatch_get_main_queue()) {
                 self.overlayView.hidden = true
             }
@@ -231,7 +231,7 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
             } else {
                 let url = photo.imageUrl!
                 print("Photo hasn't been downloaded yet, downloading..")
-                let _ = FlickrClient.sharedInstance().getImageWithPath(url) { (imageData, errorString) in
+                let _ = FlickrClient.sharedInstance.getImageWithPath(url) { (imageData, errorString) in
                     if let errorString = errorString {
                         print("Error returned from getImageWithPath(\(url)): \(errorString)")
                         dispatch_async(dispatch_get_main_queue()) {
@@ -307,6 +307,18 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
                 }
             }
         }
+    }
+    
+    func collectionView(collectionView: UICollectionView, didHighlightItemAtIndexPath indexPath: NSIndexPath) {
+        print("Did Highlight occured")
+    }
+    
+    func collectionView(collectionView: UICollectionView, didUnhighlightItemAtIndexPath indexPath: NSIndexPath) {
+        print("Did Unhighlight occured")
+    }
+    
+    func collectionView(collectionView: UICollectionView, shouldHighlightItemAtIndexPath indexPath: NSIndexPath) -> Bool {
+        return true
     }
     
     func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {

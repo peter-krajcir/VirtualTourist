@@ -96,6 +96,38 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, NSFetc
             mapView.addAnnotation(pin)
             
             CoreDataStackManager.sharedInstance().saveContext()
+            
+            prefetchPhotosForPin(pin)
+        }
+    }
+    
+    func prefetchPhotosForPin(pin: Pin) {
+        print("Prefetching photos for Pin")
+        FlickrClient.sharedInstance.searchPhotosByLatLon(pin) { (JSONResult, errorString) in
+            if let errorString = errorString {
+                print(errorString)
+            } else {
+                if let photos = JSONResult as [[String: AnyObject?]]? {
+                    
+                    for photoParsed in photos {
+                        if let photoUrl = photoParsed["url_m"] as? String {
+                            let dictionary: [String : AnyObject] = [
+                                Photo.Keys.ImageUrl: photoUrl
+                            ]
+                            
+                            let photo = Photo(dictionary: dictionary, context: self.sharedContext)
+                            photo.pin = pin
+                            self.sharedContext.insertObject(photo)
+                            CoreDataStackManager.sharedInstance().saveContext()
+                        }
+                    }
+                    
+                    print("Photos prefetched")
+                    
+                } else {
+                    print("No pictures found")
+                }
+            }
         }
     }
 
@@ -110,6 +142,11 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, NSFetc
             sharedContext.deleteObject(pin)
             CoreDataStackManager.sharedInstance().saveContext()
         } else {
+            mapView.deselectAnnotation(view.annotation!, animated: true)
+            if FlickrClient.sharedInstance.currentTask != nil {
+                print("There is an ongoing data request, cancelling..")
+                FlickrClient.sharedInstance.currentTask!.cancel()
+            }
             performSegueWithIdentifier("showPhotoAlbum", sender: pin)
         }
     }
